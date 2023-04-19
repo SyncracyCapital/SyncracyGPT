@@ -9,7 +9,6 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import GitbookLoader
 from langchain.document_loaders import PyPDFLoader
-from langchain.document_loaders import OnlinePDFLoader
 from langchain.document_loaders import WebBaseLoader
 
 from utils import get_text, document_pipeline, add_loader_to_session_state, do_nothing

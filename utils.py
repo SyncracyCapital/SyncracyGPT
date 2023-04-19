@@ -12,9 +12,9 @@ def get_text():
     Returns:
         (str): The text entered by the user
     """
-    input_text = st.text_input("You: ", st.session_state["input"], key="input",
-                               placeholder="Type crypto query or 'Dan's office robot greetings' for a robot hello moment",
-                               label_visibility='hidden')
+    input_text = st.text_area("You: ", st.session_state["input"], key="input",
+                              placeholder="Type crypto query or 'Dan's office robot greetings' for a robot hello moment",
+                              label_visibility='hidden')
     return input_text
 
 
