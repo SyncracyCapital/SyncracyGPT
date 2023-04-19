@@ -117,7 +117,7 @@ with st.sidebar.expander("🛠️ Model Settings", expanded=False):
     MODEL = st.selectbox(label='Model',
                          options=['gpt-3.5-turbo', 'text-davinci-003',
                                   'text-davinci-002', 'code-davinci-002'])
-
+    TEMPERATURE = st.slider(label='Temperature', min_value=0.0, max_value=1.0, value=0.0)
     API_O = st.sidebar.text_input(":blue[Enter Your OPENAI API-KEY :]",
                                   placeholder="Paste your OpenAI API key here (sk-...)",
                                   type="password")
@@ -136,12 +136,16 @@ if st.session_state['training_model_status']:
     st.success('SyncracyGPT is ready to chat!')
 
 if user_input:
-    # Create an OpenAI instance
+
+    # Check if the user has entered their OpenAI API key
     if not st.session_state["openai_api_key"]:
         st.error('Please enter your OpenAI API key')
         st.stop()
-    llm = ChatOpenAI(temperature=0,
+
+    # Create an OpenAI instance
+    llm = ChatOpenAI(temperature=TEMPERATURE,
                      openai_api_key=st.session_state["openai_api_key"],
+                     streming=True,
                      callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
                      verbose=True,
                      model_name=MODEL)
@@ -162,6 +166,7 @@ if user_input:
             images.append(Image.open(img))
         st.image(random.choice(images), caption="Dan's office robot greetings")
         st.stop()
+
     output = chain({"question": user_input, "chat_history": st.session_state.chat_history})
     st.session_state.past.append(user_input)
     st.session_state.generated.append(output['answer'])
