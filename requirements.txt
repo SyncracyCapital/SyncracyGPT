@@ -31,7 +31,7 @@ httpx==0.23.3
 huggingface-hub==0.13.3
 ipython-genutils==0.2.0
 joblib==1.2.0
-langchain==0.0.134
+langchain==0.0.144
 lxml==4.9.2
 lz4==4.3.2
 Markdown==3.4.3
