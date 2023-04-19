@@ -5,8 +5,6 @@ from langchain.document_loaders import OnlinePDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Chroma
 
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-
 
 def get_text():
     """
@@ -70,7 +68,7 @@ def document_pipeline():
     texts = text_splitter.split_documents(all_documents)
 
     # Generate embeddings for each documents
-    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+    embeddings = OpenAIEmbeddings(openai_api_key=st.session_state["openai_api_key"])
 
     # Add embeddings to Chroma's vector store
     docsearch = Chroma.from_documents(texts, embeddings)
@@ -92,7 +90,7 @@ def create_vectorstore(loader):
     texts = text_splitter.split_documents(documents=documents)
 
     # Generate embeddings for each documents
-    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+    embeddings = OpenAIEmbeddings(openai_api_key=st.session_state["openai_api_key"])
 
     # Add embeddings to Chroma's vector store
     docsearch = Chroma.from_documents(texts, embeddings)

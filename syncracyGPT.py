@@ -15,9 +15,6 @@ from langchain.document_loaders import WebBaseLoader
 from utils import get_text, document_pipeline, add_loader_to_session_state, do_nothing
 from utils import new_chat
 
-
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-
 # Set Streamlit page configuration
 st.set_page_config(
     page_title="SyncracyGPT",
@@ -52,12 +49,13 @@ if "document_db" not in st.session_state:
     st.session_state["document_db"] = False
 if "load_button_clicked" not in st.session_state:
     st.session_state["load_button_clicked"] = False
+if "openai_api_key" not in st.session_state:
+    st.session_state["openai_api_key"] = False
 
 # ------------------------ Set up sidebar with various options ------------------------ #
 
 # Set up sidebar with various options
 with st.sidebar.expander("📈💻 Research Documents", expanded=False):
-
     # Todo - Add a button to load a youtube video
     loader_map = {'Gitbook': GitbookLoader,
                   'URL': WebBaseLoader}
@@ -121,6 +119,11 @@ with st.sidebar.expander("🛠️ Model Settings", expanded=False):
                          options=['gpt-3.5-turbo', 'text-davinci-003',
                                   'text-davinci-002', 'code-davinci-002'])
 
+    API_O = st.sidebar.text_input(":blue[Enter Your OPENAI API-KEY :]",
+                                  placeholder="Paste your OpenAI API key here (sk-...)",
+                                  type="password")
+    st.session_state["openai_api_key"] = API_O
+
 # Add a button to start a new chat
 st.sidebar.button("New Chat", on_click=new_chat, type='primary')
 
@@ -135,8 +138,11 @@ if st.session_state['training_model_status']:
 
 if user_input:
     # Create an OpenAI instance
+    if not st.session_state["openai_api_key"]:
+        st.error('Please enter your OpenAI API key')
+        st.stop()
     llm = ChatOpenAI(temperature=0,
-                     openai_api_key=OPENAI_API_KEY,
+                     openai_api_key=st.session_state["openai_api_key"],
                      callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
                      verbose=True,
                      model_name=MODEL)
@@ -144,10 +150,12 @@ if user_input:
     # Create the ConversationChain object with the specified configuration
     try:
         chain = ConversationalRetrievalChain.from_llm(llm=llm,
-                                                      retriever=st.session_state.document_db.as_retriever(),
+                                                      retriever=st.session_state.document_db.as_retriever(
+                                                          search_kwargs={"k": 1}),
                                                       return_source_documents=True)
-    except NameError:
+    except AttributeError:
         st.error('Please train SyncracyGPT before chatting')
+        st.stop()
 
     if user_input == "Dan's office robot greetings":
         images = []
