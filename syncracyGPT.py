@@ -34,6 +34,8 @@ if "generated" not in st.session_state:
     st.session_state["generated"] = []
 if "past" not in st.session_state:
     st.session_state["past"] = []
+if "sources" not in st.session_state:
+    st.session_state["sources"] = []
 if "input" not in st.session_state:
     st.session_state["input"] = ""
 if "stored_session" not in st.session_state:
@@ -55,9 +57,9 @@ if "openai_api_key" not in st.session_state:
 
 # Set up sidebar with various options
 with st.sidebar.expander("📈💻 Research Documents", expanded=False):
-    # Todo - Add a button to load a youtube video
     loader_map = {'Gitbook': GitbookLoader,
                   'URL': WebBaseLoader}
+
     document_type = st.selectbox(label='Document Type', options=loader_map.keys(),
                                  on_change=do_nothing)
 
@@ -118,10 +120,13 @@ with st.sidebar.expander("🛠️ Model Settings", expanded=False):
                          options=['gpt-3.5-turbo', 'text-davinci-003',
                                   'text-davinci-002', 'code-davinci-002'])
     TEMPERATURE = st.slider(label='Temperature', min_value=0.0, max_value=1.0, value=0.0)
-    API_O = st.sidebar.text_input(":blue[Enter Your OPENAI API-KEY :]",
-                                  placeholder="Paste your OpenAI API key here (sk-...)",
-                                  type="password")
-    st.session_state["openai_api_key"] = API_O
+
+API_O = st.sidebar.text_input(":blue[Enter Your OPENAI API-KEY :]",
+                              placeholder="Paste your OpenAI API key here (sk-...)",
+                              type="password")
+st.session_state["openai_api_key"] = API_O
+if st.session_state["openai_api_key"]:
+    st.sidebar.success('OpenAI API key successfully set')
 
 # Add a button to start a new chat
 st.sidebar.button("New Chat", on_click=new_chat, type='primary')
@@ -145,7 +150,7 @@ if user_input:
     # Create an OpenAI instance
     llm = ChatOpenAI(temperature=TEMPERATURE,
                      openai_api_key=st.session_state["openai_api_key"],
-                     streming=True,
+                     streaming=True,
                      callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
                      verbose=True,
                      model_name=MODEL)
@@ -168,8 +173,13 @@ if user_input:
         st.stop()
 
     output = chain({"question": user_input, "chat_history": st.session_state.chat_history})
+
+    source_links = '\n'.join([doc.metadata['source'] for doc in output['source_documents']])
+
+    output_text = f"{output['answer']} \n\nSources: \n\n{source_links}"
+
     st.session_state.past.append(user_input)
-    st.session_state.generated.append(output['answer'])
+    st.session_state.generated.append(output_text)
     st.session_state.chat_history.append((user_input, output['answer']))
 
 # Display the conversation history using an expander, and allow the user to download it
